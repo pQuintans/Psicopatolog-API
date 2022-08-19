@@ -1,0 +1,30 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id         String       @id @default(uuid())
+  email      String       @unique
+  name       String
+  password   String
+  FormAnswer FormAnswer[]
+}
+
+model FormAnswer {
+  id                   String  @id @default(uuid())
+  FK_user_id           String
+  qtd_positive_answers Int
+  AI_answer            Boolean
+  date                 String
+
+  user User @relation(fields: [FK_user_id], references: [id], onDelete: Cascade)
+}
