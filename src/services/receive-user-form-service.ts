@@ -45,18 +45,37 @@ export class ReceiveUserFormService {
       email: user_email,
     })
 
+    delete updatedUser.password
+
     const subjectName = updatedUser.name
     const subject = updatedUser.email
 
-    let response = 0
+    let formsWithMostPositiveAnswers = 0
+    let formsWithAiAnswerTrue = 0
 
     updatedUser.FormAnswer.map(answer => {
       if (answer.AI_answer === true) {
-        response++
-      } else if (answer.qtd_positive_answers > 15) {
-        response++
+        formsWithAiAnswerTrue++
+      }
+
+      if (answer.qtd_positive_answers > 10) {
+        formsWithMostPositiveAnswers++
       }
     })
+
+    let messageHeader =
+      updatedUser.FormAnswer.length != 3
+        ? 'Já se passaram 20 dias, o que quer dizer que você já está pronto para responder o próximo formulário! Clique no link abaixo'
+        : 'Você concluiu todos os formulários que eram requeridos, o resultado é o seguinte:'
+    let messageBody =
+      updatedUser.FormAnswer.length != 3
+        ? '<a href="http://localhost:3000/formulario">Formulário</a>'
+        : formsWithMostPositiveAnswers < 2 && formsWithAiAnswerTrue < 2
+        ? 'Não há indícios de depressão'
+        : (formsWithMostPositiveAnswers < 2 && formsWithAiAnswerTrue >= 2) ||
+          (formsWithMostPositiveAnswers >= 2 && formsWithAiAnswerTrue < 2)
+        ? 'Recomenda-se a busca profissional, pois há indícios de depressão'
+        : 'Necessidade de busca profissional, altos indícios de depressão'
 
     const emailSubject =
       updatedUser.FormAnswer.length == 3
@@ -66,21 +85,9 @@ export class ReceiveUserFormService {
     const body = [
       '<div style="font-family: sans-serif; font-size: 16px; color: #111">',
       `<p>Olá ${subjectName},</p>`,
-      `<p>${
-        updatedUser.FormAnswer.length == 3
-          ? 'Você concluiu todos os formulários que eram requeridos, o resultado é o seguinte:'
-          : 'Já se passaram 20 dias, o que quer dizer que você já está pronto para responder o próximo formulário! Clique no link abaixo'
-      }</p>`,
+      `<p>${messageHeader}</p>`,
       '',
-      `<p>${
-        updatedUser.FormAnswer.length == 3
-          ? `A partir dos três testes, foi concluído que ${
-              response > 1
-                ? 'é importante que você procure um psicólogo.'
-                : 'sua saúde mental está bem.'
-            }`
-          : '<a href="http://localhost:3000/formulario">Formulário</a>'
-      }
+      `<p>${messageBody}
       </p>`,
       '<div>',
     ].join('\n')
