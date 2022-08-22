@@ -19,6 +19,7 @@ const app = express()
 app.use(express.json())
 app.use(cors(options))
 app.use(cookieParser())
+app.use('/files', express.static('files'))
 app.use(router)
 
 app.use(handleErrorsMiddleware)
